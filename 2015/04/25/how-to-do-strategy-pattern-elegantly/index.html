@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="在 XMind iOS 版开发过程中， 需要对不同的布局方式选择不同的类来进行布局，所以需要用到策略模式来处理。在开发过程中，找到了一种还不错的解决方式。  在 XMind 思维导图中，每一个 topic 都包含一个布局的名称，被称为 structure，我们为各种布局设计了不同的布局类来布局，这里称为 layout。 #最初的处理方法 最开始开发的过程中，我在 controller 中定义了一">
+<meta name="keywords" content="code,iOS,design pattern">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何优雅地实现策略模式">
+<meta property="og:url" content="http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/index.html">
+<meta property="og:site_name" content="Alex Yu&#39;s&#39;">
+<meta property="og:description" content="在 XMind iOS 版开发过程中， 需要对不同的布局方式选择不同的类来进行布局，所以需要用到策略模式来处理。在开发过程中，找到了一种还不错的解决方式。  在 XMind 思维导图中，每一个 topic 都包含一个布局的名称，被称为 structure，我们为各种布局设计了不同的布局类来布局，这里称为 layout。 #最初的处理方法 最开始开发的过程中，我在 controller 中定义了一">
+<meta property="og:updated_time" content="2015-05-01T15:39:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何优雅地实现策略模式">
+<meta name="twitter:description" content="在 XMind iOS 版开发过程中， 需要对不同的布局方式选择不同的类来进行布局，所以需要用到策略模式来处理。在开发过程中，找到了一种还不错的解决方式。  在 XMind 思维导图中，每一个 topic 都包含一个布局的名称，被称为 structure，我们为各种布局设计了不同的布局类来布局，这里称为 layout。 #最初的处理方法 最开始开发的过程中，我在 controller 中定义了一">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>如何优雅地实现策略模式</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2015/05/31/what-is-bounds-of-a-view/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover='$("#i-prev").toggle();' onmouseout='$("#i-prev").toggle();'></i></a></li>
+        
+        
+        <li><a class="icon" href="/2014/11/08/translate-event-handling-guide-for-ios/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover='$("#i-next").toggle();' onmouseout='$("#i-next").toggle();'></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover='$("#i-top").toggle();' onmouseout='$("#i-top").toggle();'></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover='$("#i-share").toggle();' onmouseout='$("#i-share").toggle();' onclick='$("#share").toggle();return false;'></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&text=如何优雅地实现策略模式"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&is_video=false&description=如何优雅地实现策略模式"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=如何优雅地实现策略模式&body=Check out this article: http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&name=如何优雅地实现策略模式&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        如何优雅地实现策略模式
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Alex Yu's'</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2015-04-25T13:39:07.000Z" itemprop="datePublished">2015-04-25</time>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa fa-tag"></i>
+        <a class="tag-link" href="/tags/code/">code</a>, <a class="tag-link" href="/tags/design-pattern/">design pattern</a>, <a class="tag-link" href="/tags/iOS/">iOS</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>在 XMind iOS 版开发过程中， 需要对不同的布局方式选择不同的类来进行布局，所以需要用到策略模式来处理。在开发过程中，找到了一种还不错的解决方式。</p>
+</blockquote>
+<p>在 XMind 思维导图中，每一个 topic 都包含一个布局的名称，被称为 <code>structure</code>，我们为各种布局设计了不同的布局类来布局，这里称为 <code>layout</code>。</p>
+<p>#最初的处理方法</p>
+<p>最开始开发的过程中，我在 <code>controller</code> 中定义了一个 <code>NSDictionary</code>，用于存放 <code>structureName</code> 和 <code>layout</code> 的对应关系。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">@property</span> (nonamatic, <span class="keyword">strong</span>) <span class="built_in">NSDictionary</span> *structureDict;</div><div class="line"></div><div class="line">- (instance)init &#123;</div><div class="line">    <span class="keyword">self</span> = [<span class="keyword">super</span> init];</div><div class="line">    _structureDict = @&#123; structureNameA : LayoutA,</div><div class="line">                        structureNameB : LayoutB,</div><div class="line">                        structureNameC : LayoutC,</div><div class="line">                        structureNameD : LayoutD,</div><div class="line">                        structureNameE : LayoutE&#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种方式的确可以避免太多的 if else 的选择结构。但是， controller还是必须要知道各个策略类，假如 structureName 有变化，或者新增一种策略 (layout class) 的时候，需要去修改 controller 的策略 structureDict，并且需要导入新的策略类。</p>
+<p>#解耦的处理方法<br>后来经 @Frank 提醒，找到了一种更好的方式来处理此类策略选择问题。每个策略子类自行将自己以及对应的 strucutreName 作为 key 注册到共同父类 LayoutBase class 中的字典中去。这样以来，策略有变化 (如 structureNameA 需要选择策略 LayoutC ) 或者新增策略的话，只需要继续给 LayoutBase 加子类即可，不需要其他类，实现了解耦合。可以说这些策略类就像USB设备一样“即插即用”了。</p>
+<p>示例代码如下：</p>
+<p>在父类中提供注册和查询的类方法。<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">LayoutBase</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> <span class="built_in">NSMutableDictionary</span> *subClassDict = <span class="literal">nil</span>;</div><div class="line"></div><div class="line">+ (<span class="keyword">void</span>)registerLayout:(Class)layout withKey:(<span class="built_in">NSString</span> *)key &#123;</div><div class="line">    <span class="keyword">if</span> (subClassDict == <span class="literal">nil</span>) &#123;</div><div class="line">        subClassDict = [[<span class="built_in">NSMutableDictionary</span> alloc] init];</div><div class="line">    &#125;</div><div class="line">    [subClassDict setObject:layout forKey:key];</div><div class="line">&#125;</div><div class="line"></div><div class="line">+ (Class)layoutClassWithKey:(<span class="built_in">NSString</span> *)key &#123;</div><div class="line">    <span class="keyword">if</span> ([subClassDict objectForKey:key]) &#123;</div><div class="line">        Class <span class="keyword">class</span> = [subClassDict objectForKey:key];</div><div class="line">        <span class="keyword">return</span> <span class="keyword">class</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="literal">nil</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure></p>
+<p>子类则需要在 load 的方法中，将自己注册到 subClassDict 中。<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">LayoutA</span></span></div><div class="line"></div><div class="line">+ (<span class="keyword">void</span>)load &#123;</div><div class="line">    [LayoutBase registerLayout:<span class="keyword">self</span> withKey:structureNameA];</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure></p>
+<p>#什么是 load 方法？<br>上述处理方法中我们用到了类的 <code>load</code> 方法。<code>load</code> 方法是一个特殊类方法。<br>runtime 会在程序运行一开始对所有引用的 class 调用其 load 方法一次。所以可以利用这个方法进行一些预处理工作。官方的介绍，</p>
+<blockquote>
+<p>Invoked whenever a class or category is added to the Objective-C runtime; implement this method to perform class-specific behavior upon loading.</p>
+</blockquote>
+<p>详情请移步：<a href="https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Classes/NSObject_Class/index.html#//apple_ref/occ/clm/NSObject/load" target="_blank" rel="external">Apple 官方介绍</a></p>
+<p>还可参考：<a href="http://www.cnblogs.com/ider/archive/2012/09/29/objective_c_load_vs_initialize.html" target="_blank" rel="external">Ider的博客 Objective C类方法load和initialize的区别</a></p>
+<p>#进一步优化<br>一般情况下，策略选择不会是 key 和 class 一一对应着么简单。可能还要考虑各种因素加入算法进行策略选择。把策略选择这个职责交给一个单独的类来处理，我们这里把它叫做 layoutSelector。Controller 在选择策略时，发消息给 layoutSelector，然后由 layoutSelector 进行处理将选好的策略返回。<br><figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Layout *layout = [layoutSelector installLayoutWithConditions: (<span class="built_in">NSDictionary</span> *)conditionsDict];</div></pre></td></tr></table></figure></p>
+
+  </div>
+</article>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&text=如何优雅地实现策略模式"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&is_video=false&description=如何优雅地实现策略模式"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=如何优雅地实现策略模式&body=Check out this article: http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&title=如何优雅地实现策略模式"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://alexyu.me/2015/04/25/how-to-do-strategy-pattern-elegantly/&name=如何优雅地实现策略模式&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick='$("#toc-footer").toggle();return false;'><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick='$("#share-footer").toggle();return false;'><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick='$("#nav-footer").toggle();return false;'><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2017 Alex Yu
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="http://github.com/probberechts">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- Google Analytics -->
+
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-86660611-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+<!-- Disqus Comments -->
+
+
